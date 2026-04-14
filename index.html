@@ -1,265 +1,457 @@
-export default function KleurenleerGame() {
-  return (
-    <div className="min-h-screen bg-slate-100 p-6 flex items-center justify-center">
-      <div className="max-w-4xl w-full bg-white rounded-3xl shadow-xl p-6 md:p-8">
-        <h1 className="text-3xl font-bold mb-2">Kleurenleer Game</h1>
-        <p className="text-slate-600 mb-6">
-          Leer primaire en secundaire kleuren door kleuren te combineren.
-        </p>
-        <ColorGame />
-      </div>
-    </div>
-  );
-}
-
-import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { CheckCircle2, RotateCcw, Trophy } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-
-const COLORS = {
-  rood: "#ef4444",
-  geel: "#facc15",
-  blauw: "#3b82f6",
-  oranje: "#f97316",
-  groen: "#22c55e",
-  paars: "#a855f7",
-};
-
-const QUESTIONS = [
-  { a: "rood", b: "geel", answer: "oranje" },
-  { a: "geel", b: "blauw", answer: "groen" },
-  { a: "rood", b: "blauw", answer: "paars" },
-];
-
-function shuffle(array) {
-  return [...array].sort(() => Math.random() - 0.5);
-}
-
-function ColorGame() {
-  const [showAdvice, setShowAdvice] = useState(true);
-  const [score, setScore] = useState(0);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [feedback, setFeedback] = useState("");
-  const [selected, setSelected] = useState(null);
-  const [finished, setFinished] = useState(false);
-
-  const currentQuestion = QUESTIONS[questionIndex];
-
-  const options = useMemo(() => {
-    if (!currentQuestion) return [];
-    return shuffle([
-      currentQuestion.answer,
-      ...shuffle(Object.keys(COLORS).filter((c) => c !== currentQuestion.answer)).slice(0, 2),
-    ]);
-  }, [currentQuestion, questionIndex]);
-
-  function handleAnswer(option) {
-    if (selected || finished) return;
-
-    setSelected(option);
-
-    if (option === currentQuestion.answer) {
-      setScore((prev) => prev + 1);
-      setFeedback("Goed gedaan! 🎉");
-    } else {
-      setFeedback(`Nog niet goed. Het juiste antwoord is ${currentQuestion.answer}.`);
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kleurenleer Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    setTimeout(() => {
-      if (questionIndex < QUESTIONS.length - 1) {
-        setQuestionIndex((prev) => prev + 1);
-        setSelected(null);
-        setFeedback("");
-      } else {
-        setFinished(true);
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      padding: 24px;
+    }
+
+    h1, h2, h3, h4, p {
+      margin-top: 0;
+    }
+
+    .subtitle {
+      color: #475569;
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      padding: 24px;
+    }
+
+    .muted {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .mix-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .plus {
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .circle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .circle {
+      width: 96px;
+      height: 96px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.12);
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    button.option {
+      width: 100%;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button.option:hover:not(:disabled) {
+      background: #f8fafc;
+    }
+
+    button.option.correct {
+      background: #dcfce7;
+      border-color: #4ade80;
+    }
+
+    button.option.wrong {
+      background: #fee2e2;
+      border-color: #f87171;
+    }
+
+    button.option:disabled {
+      cursor: default;
+    }
+
+    .feedback {
+      margin-top: 16px;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .tags {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+    }
+
+    .tag-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+    }
+
+    .divider {
+      border-top: 1px solid #e2e8f0;
+      margin-top: 20px;
+      padding-top: 20px;
+    }
+
+    .score {
+      font-size: 40px;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      border: 1px solid #cbd5e1;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn:hover {
+      background: #f8fafc;
+    }
+
+    .advice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .advice-box {
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 16px;
+      color: #334155;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .advice-box.tip {
+      background: #fffbeb;
+      border-color: #fcd34d;
+    }
+
+    .finished {
+      text-align: center;
+      padding: 32px 12px;
+    }
+
+    .trophy {
+      font-size: 56px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
       }
-    }, 1400);
-  }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="container">
+      <h1>Kleurenleer Game</h1>
+      <p class="subtitle">Leer primaire en secundaire kleuren door kleuren te combineren.</p>
+      <div id="app"></div>
+    </div>
+  </div>
 
-  function resetGame() {
-    setScore(0);
-    setQuestionIndex(0);
-    setFeedback("");
-    setSelected(null);
-    setFinished(false);
-  }
+  <script>
+    const COLORS = {
+      rood: "#ef4444",
+      geel: "#facc15",
+      blauw: "#3b82f6",
+      oranje: "#f97316",
+      groen: "#22c55e",
+      paars: "#a855f7",
+    };
 
-  if (finished) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <div className="flex justify-center mb-4">
-          <Trophy className="w-14 h-14 text-yellow-500" />
+    const QUESTIONS = [
+      { a: "rood", b: "geel", answer: "oranje" },
+      { a: "geel", b: "blauw", answer: "groen" },
+      { a: "rood", b: "blauw", answer: "paars" },
+    ];
+
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+
+    let state = {
+      showAdvice: true,
+      score: 0,
+      questionIndex: 0,
+      feedback: "",
+      selected: null,
+      finished: false,
+    };
+
+    function renderTag(label, color) {
+      return `
+        <div class="tag">
+          <span class="tag-dot" style="background:${color}"></span>
+          <span>${label}</span>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Spel afgerond!</h2>
-        <p className="text-lg mb-6">
-          Je score: <span className="font-semibold">{score} / {QUESTIONS.length}</span>
-        </p>
-        <Button onClick={resetGame} className="rounded-2xl">
-          <RotateCcw className="mr-2 h-4 w-4" />
-          Opnieuw spelen
-        </Button>
-      </motion.div>
-    );
-  }
+      `;
+    }
 
-  return (
-    <div className="grid md:grid-cols-2 gap-6 items-start">
-      <Card className="rounded-3xl shadow-md border-0">
-        <CardContent className="p-6">
-          <p className="text-sm text-slate-500 mb-2">
-            Vraag {questionIndex + 1} van {QUESTIONS.length}
-          </p>
-          <h2 className="text-2xl font-semibold mb-4">Welke kleur krijg je als je deze twee kleuren mengt?</h2>
+    function renderColorCircle(label, color) {
+      return `
+        <div class="circle-wrap">
+          <div class="circle" style="background:${color}"></div>
+          <span style="font-weight:600; text-transform:capitalize;">${label}</span>
+        </div>
+      `;
+    }
 
-          <div className="flex gap-4 mb-6">
-            <ColorCircle color={COLORS[currentQuestion.a]} label={currentQuestion.a} />
-            <div className="text-3xl font-bold self-center">+</div>
-            <ColorCircle color={COLORS[currentQuestion.b]} label={currentQuestion.b} />
+    function handleAnswer(option) {
+      if (state.selected || state.finished) return;
+
+      const currentQuestion = QUESTIONS[state.questionIndex];
+      state.selected = option;
+
+      if (option === currentQuestion.answer) {
+        state.score += 1;
+        state.feedback = "Goed gedaan! 🎉";
+      } else {
+        state.feedback = "Nog niet goed. Het juiste antwoord is " + currentQuestion.answer + ".";
+      }
+
+      render();
+
+      setTimeout(() => {
+        if (state.questionIndex < QUESTIONS.length - 1) {
+          state.questionIndex += 1;
+          state.selected = null;
+          state.feedback = "";
+        } else {
+          state.finished = true;
+        }
+        render();
+      }, 1400);
+    }
+
+    function resetGame() {
+      state.score = 0;
+      state.questionIndex = 0;
+      state.feedback = "";
+      state.selected = null;
+      state.finished = false;
+      render();
+    }
+
+    function toggleAdvice() {
+      state.showAdvice = !state.showAdvice;
+      render();
+    }
+
+    function render() {
+      const app = document.getElementById("app");
+
+      if (state.finished) {
+        app.innerHTML = `
+          <div class="finished">
+            <div class="trophy">🏆</div>
+            <h2>Spel afgerond!</h2>
+            <p style="font-size:20px; margin-bottom:24px;">
+              Je score: <strong>${state.score} / ${QUESTIONS.length}</strong>
+            </p>
+            <button class="btn" onclick="resetGame()">Opnieuw spelen</button>
+          </div>
+        `;
+        return;
+      }
+
+      const currentQuestion = QUESTIONS[state.questionIndex];
+      const options = shuffle([
+        currentQuestion.answer,
+        ...shuffle(Object.keys(COLORS).filter(c => c !== currentQuestion.answer)).slice(0, 2)
+      ]);
+
+      app.innerHTML = `
+        <div class="grid">
+          <div class="card">
+            <p class="muted">Vraag ${state.questionIndex + 1} van ${QUESTIONS.length}</p>
+            <h2>Welke kleur krijg je als je deze twee kleuren mengt?</h2>
+
+            <div class="mix-row">
+              ${renderColorCircle(currentQuestion.a, COLORS[currentQuestion.a])}
+              <div class="plus">+</div>
+              ${renderColorCircle(currentQuestion.b, COLORS[currentQuestion.b])}
+            </div>
+
+            <div class="options">
+              ${options.map(option => {
+                const isCorrect = state.selected && option === currentQuestion.answer;
+                const isWrong = state.selected === option && option !== currentQuestion.answer;
+                const className = isCorrect ? "correct" : isWrong ? "wrong" : "";
+                return `
+                  <button
+                    class="option ${className}"
+                    onclick="handleAnswer('${option}')"
+                    ${state.selected ? "disabled" : ""}
+                  >
+                    ${option}
+                  </button>
+                `;
+              }).join("")}
+            </div>
+
+            ${state.feedback ? `<div class="feedback">${state.feedback}</div>` : ""}
           </div>
 
-          <div className="space-y-3">
-            {options.map((option) => {
-              const isCorrect = selected && option === currentQuestion.answer;
-              const isWrong = selected === option && option !== currentQuestion.answer;
+          <div class="card">
+            <h3>Kleurenhulp</h3>
 
-              return (
-                <button
-                  key={option}
-                  onClick={() => handleAnswer(option)}
-                  className={`w-full text-left px-4 py-3 rounded-2xl border transition font-medium ${
-                    isCorrect
-                      ? "bg-green-100 border-green-400"
-                      : isWrong
-                      ? "bg-red-100 border-red-400"
-                      : "bg-white hover:bg-slate-50 border-slate-200"
-                  }`}
-                >
-                  {option}
+            <div style="margin-bottom:20px;">
+              <p style="font-weight:700; margin-bottom:10px;">Primaire kleuren</p>
+              <div class="tags">
+                ${renderTag("Rood", COLORS.rood)}
+                ${renderTag("Geel", COLORS.geel)}
+                ${renderTag("Blauw", COLORS.blauw)}
+              </div>
+            </div>
+
+            <div style="margin-bottom:20px;">
+              <p style="font-weight:700; margin-bottom:10px;">Secundaire kleuren</p>
+              <div class="tags">
+                ${renderTag("Oranje", COLORS.oranje)}
+                ${renderTag("Groen", COLORS.groen)}
+                ${renderTag("Paars", COLORS.paars)}
+              </div>
+            </div>
+
+            <div class="divider">
+              <p style="font-weight:700;">Score</p>
+              <div class="score">${state.score}</div>
+            </div>
+
+            <div class="divider">
+              <div class="toolbar">
+                <h4 style="margin:0;">Adviezen voor het MBO</h4>
+                <button class="btn" onclick="toggleAdvice()">
+                  ${state.showAdvice ? "Verberg" : "Toon"}
                 </button>
-              );
-            })}
-          </div>
-
-          {feedback && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mt-4 flex items-center gap-2 text-slate-700"
-            >
-              <CheckCircle2 className="w-5 h-5" />
-              <span>{feedback}</span>
-            </motion.div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-3xl shadow-md border-0">
-        <CardContent className="p-6">
-          <h3 className="text-xl font-semibold mb-4">Kleurenhulp</h3>
-          <div className="space-y-4 text-slate-700">
-            <div>
-              <p className="font-semibold mb-2">Primaire kleuren</p>
-              <div className="flex gap-3 flex-wrap">
-                <Tag color={COLORS.rood} label="Rood" />
-                <Tag color={COLORS.geel} label="Geel" />
-                <Tag color={COLORS.blauw} label="Blauw" />
-              </div>
-            </div>
-            <div>
-              <p className="font-semibold mb-2">Secundaire kleuren</p>
-              <div className="flex gap-3 flex-wrap">
-                <Tag color={COLORS.oranje} label="Oranje" />
-                <Tag color={COLORS.groen} label="Groen" />
-                <Tag color={COLORS.paars} label="Paars" />
-              </div>
-            </div>
-            <div className="pt-4 border-t">
-              <p className="font-medium">Score</p>
-              <p className="text-3xl font-bold mt-1">{score}</p>
-            </div>
-
-            <div className="pt-4 border-t mt-4">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <h4 className="text-lg font-semibold">Adviezen voor het MBO</h4>
-                <Button
-                  variant="outline"
-                  className="rounded-2xl"
-                  onClick={() => setShowAdvice((prev) => !prev)}
-                >
-                  {showAdvice ? "Verberg" : "Toon"}
-                </Button>
               </div>
 
-              {showAdvice && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-3 text-sm leading-6 text-slate-700"
-                >
-                  <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
-                    <p className="font-semibold mb-1">1. Maak het praktisch</p>
-                    <p>
+              ${state.showAdvice ? `
+                <div class="advice-list">
+                  <div class="advice-box">
+                    <p style="font-weight:700; margin-bottom:6px;">1. Maak het praktisch</p>
+                    <p style="margin:0;">
                       Koppel kleuren aan echte beroepen en situaties, zoals vormgeving, schilderwerk,
-                      interieur, mode, horeca of bloemenwerk. Dan zien studenten direct waarom kleurenleer relevant is.
+                      interieur, mode, horeca of bloemenwerk.
                     </p>
                   </div>
 
-                  <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
-                    <p className="font-semibold mb-1">2. Geef uitleg na elk antwoord</p>
-                    <p>
+                  <div class="advice-box">
+                    <p style="font-weight:700; margin-bottom:6px;">2. Geef uitleg na elk antwoord</p>
+                    <p style="margin:0;">
                       Laat niet alleen zien of iets goed of fout is, maar geef ook kort de reden,
-                      bijvoorbeeld: rood + geel = oranje. Dat versterkt begrip in plaats van alleen geheugen.
+                      bijvoorbeeld: rood + geel = oranje.
                     </p>
                   </div>
 
-                  <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
-                    <p className="font-semibold mb-1">3. Werk met niveaus</p>
-                    <p>
+                  <div class="advice-box">
+                    <p style="font-weight:700; margin-bottom:6px;">3. Werk met niveaus</p>
+                    <p style="margin:0;">
                       Begin met primaire en secundaire kleuren en bouw daarna uit naar complementaire kleuren,
                       warme en koele kleuren of kleurtoepassing in praktijksituaties.
                     </p>
                   </div>
 
-                  <div className="rounded-2xl bg-amber-50 p-4 border border-amber-200">
-                    <p className="font-semibold mb-1">Didactische tip</p>
-                    <p>
-                      Sluit de game af met een reflectievraag zoals: waar kom jij deze kleurcombinaties tegen in je stage,
-                      opleiding of toekomstige beroep?
+                  <div class="advice-box tip">
+                    <p style="font-weight:700; margin-bottom:6px;">Didactische tip</p>
+                    <p style="margin:0;">
+                      Sluit de game af met een reflectievraag zoals: waar kom jij deze kleurcombinaties tegen
+                      in je stage, opleiding of toekomstige beroep?
                     </p>
                   </div>
-                </motion.div>
-              )}
+                </div>
+              ` : ""}
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+        </div>
+      `;
+    }
 
-function ColorCircle({ color, label }) {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div
-        className="w-24 h-24 rounded-full shadow-inner border border-slate-200"
-        style={{ backgroundColor: color }}
-      />
-      <span className="font-medium capitalize">{label}</span>
-    </div>
-  );
-}
-
-function Tag({ color, label }) {
-  return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-50 border border-slate-200">
-      <span className="w-4 h-4 rounded-full" style={{ backgroundColor: color }} />
-      <span>{label}</span>
-    </div>
-  );
-}
+    render();
+  </script>
+</body>
+</html>
