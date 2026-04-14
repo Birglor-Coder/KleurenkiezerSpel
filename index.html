@@ -401,56 +401,6 @@
               <p style="font-weight:700;">Score</p>
               <div class="score">${state.score}</div>
             </div>
-
-            <div class="divider">
-              <div class="toolbar">
-                <h4 style="margin:0;">Adviezen voor het MBO</h4>
-                <button class="btn" onclick="toggleAdvice()">
-                  ${state.showAdvice ? "Verberg" : "Toon"}
-                </button>
-              </div>
-
-              ${state.showAdvice ? `
-                <div class="advice-list">
-                  <div class="advice-box">
-                    <p style="font-weight:700; margin-bottom:6px;">1. Maak het praktisch</p>
-                    <p style="margin:0;">
-                      Koppel kleuren aan echte beroepen en situaties, zoals vormgeving, schilderwerk,
-                      interieur, mode, horeca of bloemenwerk.
-                    </p>
-                  </div>
-
-                  <div class="advice-box">
-                    <p style="font-weight:700; margin-bottom:6px;">2. Geef uitleg na elk antwoord</p>
-                    <p style="margin:0;">
-                      Laat niet alleen zien of iets goed of fout is, maar geef ook kort de reden,
-                      bijvoorbeeld: rood + geel = oranje.
-                    </p>
-                  </div>
-
-                  <div class="advice-box">
-                    <p style="font-weight:700; margin-bottom:6px;">3. Werk met niveaus</p>
-                    <p style="margin:0;">
-                      Begin met primaire en secundaire kleuren en bouw daarna uit naar complementaire kleuren,
-                      warme en koele kleuren of kleurtoepassing in praktijksituaties.
-                    </p>
-                  </div>
-
-                  <div class="advice-box tip">
-                    <p style="font-weight:700; margin-bottom:6px;">Didactische tip</p>
-                    <p style="margin:0;">
-                      Sluit de game af met een reflectievraag zoals: waar kom jij deze kleurcombinaties tegen
-                      in je stage, opleiding of toekomstige beroep?
-                    </p>
-                  </div>
-                </div>
-              ` : ""}
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
     render();
   </script>
 </body>
